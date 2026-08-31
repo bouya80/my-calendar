@@ -30,7 +30,7 @@
         .weekdays div:nth-child(1) { color: var(--sunday-color); }
         .weekdays div:nth-child(7) { color: var(--saturday-color); }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); flex-grow: 1; background-color: var(--bg-color); }
-        .day-cell { min-height: 85px; border-right: 1px solid var(--grid-border); border-bottom: 1px solid var(--grid-border); padding: 6px; display: flex; flex-direction: column; cursor: pointer; background-color: var(--bg-color); }
+        .day-cell { min-height: 90px; border-right: 1px solid var(--grid-border); border-bottom: 1px solid var(--grid-border); padding: 6px; display: flex; flex-direction: column; cursor: pointer; background-color: var(--bg-color); }
         .day-cell:nth-child(7n) { border-right: none; }
         .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .solar-num { font-size: 15px; font-weight: 600; color: #ffffff; }
@@ -42,15 +42,27 @@
         .event-badge { font-size: 11px; background-color: rgba(10, 132, 255, 0.25); color: #64d2ff; border-left: 3px solid var(--accent-color); padding: 2px 4px; margin-top: 2px; border-radius: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .toolbar { padding: 12px 16px; background-color: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; gap: 8px; }
         .btn-action { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: #2c2c2e; color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: flex-end; z-index: 1000; }
+        
+        /* 모달 스타일 개편 */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: flex-end; z-index: 1000; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background-color: var(--card-bg); width: 100%; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
-        .input-group { display: flex; gap: 8px; }
-        input[type="text"] { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: #121212; color: #fff; font-size: 15px; }
-        .btn-add { background: var(--accent-color); color: white; border: none; padding: 0 18px; border-radius: 8px; font-weight: 600; font-size: 15px; }
-        .modal-event-list { display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; }
-        .modal-event-item { display: flex; justify-content: space-between; padding: 12px; background: #2c2c2e; border-radius: 8px; font-size: 14px; color: #fff; }
+        .modal-content { background-color: var(--card-bg); width: 100%; max-width: 500px; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; max-height: 85vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 8px; background: #121212; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .form-row { display: flex; gap: 8px; }
+        input[type="text"], input[type="time"], textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: #2c2c2e; color: #fff; font-size: 14px; }
+        textarea { resize: none; height: 50px; }
+        .btn-add { background: var(--accent-color); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; }
+        
+        .modal-event-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+        .event-card { background: #2c2c2e; border-radius: 8px; padding: 12px; border-left: 4px solid var(--accent-color); display: flex; flex-direction: column; gap: 4px; position: relative; }
+        .event-card-header { display: flex; justify-content: space-between; align-items: center; }
+        .event-card-title { font-size: 15px; font-weight: bold; color: #fff; }
+        .event-card-time { font-size: 12px; color: #64d2ff; }
+        .event-card-location { font-size: 12px; color: var(--text-muted); }
+        .event-card-memo { font-size: 13px; color: #d1d1d6; margin-top: 4px; white-space: pre-wrap; background: #1c1c1e; padding: 6px; border-radius: 4px; }
+        .btn-del-card { background: none; border: none; color: var(--sunday-color); font-weight: bold; font-size: 13px; cursor: pointer; }
         #fileInput { display: none; }
     </style>
 </head>
@@ -83,16 +95,24 @@
                 <div id="modalDateTitle" style="font-size: 16px; font-weight: bold;">일정 관리</div>
                 <button style="background:none; border:none; color:var(--text-muted); font-size:20px;" id="closeModalBtn">✕</button>
             </div>
-            <div class="input-group">
-                <input type="text" id="eventInput" placeholder="일정을 입력하세요...">
-                <button class="btn-add" id="addEventBtn">추가</button>
+            
+            <!-- 상세 입력 폼 -->
+            <div class="form-group">
+                <input type="text" id="eventTitleInput" placeholder="일정 제목 (필수)">
+                <div class="form-row">
+                    <input type="time" id="eventTimeInput" placeholder="시간">
+                    <input type="text" id="eventLocInput" placeholder="장소">
+                </div>
+                <textarea id="eventMemoInput" placeholder="상세 메모..."></textarea>
+                <button class="btn-add" id="addEventBtn">일정 등록</button>
             </div>
+
+            <!-- 등록된 일정 리스트 -->
             <div class="modal-event-list" id="modalEventList"></div>
         </div>
     </div>
 
     <script>
-        // 음력 간이 계산 엔진 (안정형)
         function getLunarText(y, m, d) {
             try {
                 const solar = new Date(y, m - 1, d);
@@ -130,17 +150,12 @@
             const today = new Date();
             const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
-            // 이전 달 날짜들
             for (let i = firstDay - 1; i >= 0; i--) {
                 calendarGrid.appendChild(createDayCell(year, month - 1, prevLastDate - i, true));
             }
-
-            // 이번 달 날짜들
             for (let d = 1; d <= lastDate; d++) {
                 calendarGrid.appendChild(createDayCell(year, month, d, false, isCurrentMonth && today.getDate() === d));
             }
-
-            // 다음 달 날짜들
             const totalCells = calendarGrid.children.length;
             const remainingCells = (totalCells <= 35 ? 35 : 42) - totalCells;
             for (let j = 1; j <= remainingCells; j++) {
@@ -160,36 +175,50 @@
             const cell = document.createElement("div");
             cell.className = `day-cell ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${dayOfWeek === 0 ? 'sun' : ''} ${dayOfWeek === 6 ? 'sat' : ''}`;
 
-            const lunarStr = getLunarText(actualY, actualM, actualD);
-
             cell.innerHTML = `
                 <div class="day-header">
                     <span class="solar-num">${actualD}</span>
-                    <span class="lunar-num">${lunarStr}</span>
+                    <span class="lunar-num">${getLunarText(actualY, actualM, actualD)}</span>
                 </div>
                 <div class="event-list-preview" id="preview-${dateKey}"></div>
             `;
 
             const dayEvents = events[dateKey] || [];
             const previewContainer = cell.querySelector(`#preview-${dateKey}`);
+            
             dayEvents.slice(0, 2).forEach(evt => {
                 const b = document.createElement("div");
                 b.className = "event-badge";
-                b.textContent = evt;
+                const timePrefix = evt.time ? `[${evt.time}] ` : "";
+                b.textContent = `${timePrefix}${evt.title}`;
                 previewContainer.appendChild(b);
             });
 
-            cell.addEventListener("click", () => openEventModal(dateKey, actualY, actualM, actualD));
+            if (dayEvents.length > 2) {
+                const more = document.createElement("div");
+                more.className = "event-badge";
+                more.style.opacity = "0.6";
+                more.textContent = `+${dayEvents.length - 2}개 더보기`;
+                previewContainer.appendChild(more);
+            }
 
+            cell.addEventListener("click", () => openEventModal(dateKey, actualY, actualM, actualD));
             return cell;
         }
 
         function openEventModal(dateKey, y, m, d) {
             selectedDateStr = dateKey;
-            document.getElementById("modalDateTitle").textContent = `${y}년 ${m}월 ${d}일 일정`;
-            document.getElementById("eventInput").value = "";
+            document.getElementById("modalDateTitle").textContent = `${y}년 ${m}월 ${d}일 일정 상세`;
+            clearInputs();
             renderModalEvents();
             document.getElementById("eventModal").classList.add("active");
+        }
+
+        function clearInputs() {
+            document.getElementById("eventTitleInput").value = "";
+            document.getElementById("eventTimeInput").value = "";
+            document.getElementById("eventLocInput").value = "";
+            document.getElementById("eventMemoInput").value = "";
         }
 
         function renderModalEvents() {
@@ -202,23 +231,45 @@
                 return;
             }
 
+            // 시간순 정렬
+            dayEvents.sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
+
             dayEvents.forEach((evt, idx) => {
-                const item = document.createElement("div");
-                item.className = "modal-event-item";
-                item.innerHTML = `<span>${evt}</span><button style="background:none; border:none; color:var(--sunday-color); font-weight:bold; cursor:pointer;" onclick="deleteEvent(${idx})">삭제</button>`;
-                list.appendChild(item);
+                const card = document.createElement("div");
+                card.className = "event-card";
+                
+                let html = `
+                    <div class="event-card-header">
+                        <span class="event-card-title">${evt.title}</span>
+                        <button class="btn-del-card" onclick="deleteEvent(${idx})">삭제</button>
+                    </div>
+                `;
+                if (evt.time) html += `<div class="event-card-time">⏰ ${evt.time}</div>`;
+                if (evt.location) html += `<div class="event-card-location">📍 ${evt.location}</div>`;
+                if (evt.memo) html += `<div class="event-card-memo">${evt.memo}</div>`;
+
+                card.innerHTML = html;
+                list.appendChild(card);
             });
         }
 
         function addEvent() {
-            const val = document.getElementById("eventInput").value.trim();
-            if (!val) return;
+            const title = document.getElementById("eventTitleInput").value.trim();
+            if (!title) {
+                alert("일정 제목을 입력해 주세요.");
+                return;
+            }
+
+            const time = document.getElementById("eventTimeInput").value;
+            const location = document.getElementById("eventLocInput").value.trim();
+            const memo = document.getElementById("eventMemoInput").value.trim();
 
             if (!events[selectedDateStr]) events[selectedDateStr] = [];
-            events[selectedDateStr].push(val);
+            
+            events[selectedDateStr].push({ title, time, location, memo });
             localStorage.setItem("my_calendar_events", JSON.stringify(events));
 
-            document.getElementById("eventInput").value = "";
+            clearInputs();
             renderModalEvents();
             renderCalendar();
         }
@@ -233,20 +284,33 @@
             }
         };
 
+        // 데이터 백업 (TXT)
         document.getElementById("exportTxtBtn").addEventListener("click", () => {
-            let txt = "=== 일정 백업 ===\n\n";
+            let txt = "=== 상세 일정 백업 ===\n\n";
             Object.keys(events).sort().forEach(k => {
                 txt += `[${k}]\n`;
-                events[k].forEach(e => txt += `- ${e}\n`);
+                events[k].forEach(e => {
+                    txt += `- 제목: ${e.title}\n`;
+                    if (e.time) txt += `  시간: ${e.time}\n`;
+                    if (e.location) txt += `  장소: ${e.location}\n`;
+                    if (e.memo) txt += `  메모: ${e.memo}\n`;
+                });
                 txt += "\n";
             });
             downloadFile(txt, "calendar_backup.txt", "text/plain");
         });
 
+        // 데이터 백업 (Excel / CSV)
         document.getElementById("exportCsvBtn").addEventListener("click", () => {
-            let csv = "\uFEFF날짜,일정\n";
+            let csv = "\uFEFF날짜,시간,일정명,장소,메모\n";
             Object.keys(events).sort().forEach(k => {
-                events[k].forEach(e => csv += `"${k}","${e.replace(/"/g, '""')}"\n`);
+                events[k].forEach(e => {
+                    const title = (e.title || "").replace(/"/g, '""');
+                    const time = e.time || "";
+                    const loc = (e.location || "").replace(/"/g, '""');
+                    const memo = (e.memo || "").replace(/"/g, '""').replace(/\n/g, ' ');
+                    csv += `"${k}","${time}","${title}","${loc}","${memo}"\n`;
+                });
             });
             downloadFile(csv, "calendar_events.csv", "text/csv");
         });
@@ -270,37 +334,31 @@
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function(evt) {
-                const text = evt.target.result;
-                if (file.name.endsWith('.csv')) {
-                    text.split(/\r\n|\n/).forEach((line, idx) => {
-                        if (idx === 0 || !line.trim()) return;
-                        const parts = line.split(',');
-                        if (parts.length >= 2) {
-                            const d = parts[0].replace(/"/g, '').trim();
-                            const ev = parts.slice(1).join(',').replace(/"/g, '').trim();
-                            if (d && ev) {
-                                if (!events[d]) events[d] = [];
-                                if (!events[d].includes(ev)) events[d].push(ev);
+                try {
+                    const text = evt.target.result;
+                    if (file.name.endsWith('.csv')) {
+                        text.split(/\r\n|\n/).forEach((line, idx) => {
+                            if (idx === 0 || !line.trim()) return;
+                            const parts = line.split(',');
+                            if (parts.length >= 3) {
+                                const d = parts[0].replace(/"/g, '').trim();
+                                const t = parts[1].replace(/"/g, '').trim();
+                                const title = parts[2].replace(/"/g, '').trim();
+                                const loc = parts[3] ? parts[3].replace(/"/g, '').trim() : "";
+                                const memo = parts[4] ? parts[4].replace(/"/g, '').trim() : "";
+                                if (d && title) {
+                                    if (!events[d]) events[d] = [];
+                                    events[d].push({ title, time: t, location: loc, memo });
+                                }
                             }
-                        }
-                    });
-                } else {
-                    let curDate = null;
-                    text.split(/\r\n|\n/).forEach(line => {
-                        line = line.trim();
-                        if (line.startsWith('[') && line.endsWith(']')) curDate = line.substring(1, line.length - 1);
-                        else if (line.startsWith('-') && curDate) {
-                            const ev = line.substring(1).trim();
-                            if (ev) {
-                                if (!events[curDate]) events[curDate] = [];
-                                if (!events[curDate].includes(ev)) events[curDate].push(ev);
-                            }
-                        }
-                    });
+                        });
+                    }
+                    localStorage.setItem("my_calendar_events", JSON.stringify(events));
+                    renderCalendar();
+                    alert("복원이 완료되었습니다.");
+                } catch (err) {
+                    alert("파일 복원 중 오류가 발생했습니다.");
                 }
-                localStorage.setItem("my_calendar_events", JSON.stringify(events));
-                renderCalendar();
-                alert("복원이 완료되었습니다.");
             };
             reader.readAsText(file);
         });
@@ -311,7 +369,6 @@
         document.getElementById("closeModalBtn").addEventListener("click", () => document.getElementById("eventModal").classList.remove("active"));
         document.getElementById("addEventBtn").addEventListener("click", addEvent);
 
-        // 실행
         renderCalendar();
     </script>
 </body>
