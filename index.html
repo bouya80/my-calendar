@@ -32,18 +32,20 @@
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); flex-grow: 1; background-color: var(--bg-color); }
         .day-cell { min-height: 90px; border-right: 1px solid var(--grid-border); border-bottom: 1px solid var(--grid-border); padding: 6px; display: flex; flex-direction: column; cursor: pointer; background-color: var(--bg-color); }
         .day-cell:nth-child(7n) { border-right: none; }
-        .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+        .day-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
         .solar-num { font-size: 15px; font-weight: 600; color: #ffffff; }
         .day-cell.other-month .solar-num { opacity: 0.3; }
-        .day-cell.sun .solar-num { color: var(--sunday-color); }
+        .day-cell.sun .solar-num, .day-cell.holiday .solar-num { color: var(--sunday-color) !important; }
         .day-cell.sat .solar-num { color: var(--saturday-color); }
-        .lunar-num { font-size: 10px; color: var(--lunar-color); }
-        .day-cell.today .solar-num { background-color: var(--accent-color); color: #ffffff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+        .lunar-info { display: flex; flex-direction: column; align-items: flex-end; }
+        .lunar-num { font-size: 9px; color: var(--lunar-color); }
+        .holiday-name { font-size: 9px; color: var(--sunday-color); font-weight: 600; margin-top: 1px; }
+        
+        .day-cell.today .solar-num { background-color: var(--accent-color); color: #ffffff !important; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
         .event-badge { font-size: 11px; background-color: rgba(10, 132, 255, 0.25); color: #64d2ff; border-left: 3px solid var(--accent-color); padding: 2px 4px; margin-top: 2px; border-radius: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .toolbar { padding: 12px 16px; background-color: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; gap: 8px; }
         .btn-action { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: #2c2c2e; color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; }
         
-        /* 모달 스타일 개편 */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: flex-end; z-index: 1000; }
         .modal-overlay.active { display: flex; }
         .modal-content { background-color: var(--card-bg); width: 100%; max-width: 500px; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; max-height: 85vh; overflow-y: auto; }
@@ -56,7 +58,7 @@
         .btn-add { background: var(--accent-color); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; }
         
         .modal-event-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-        .event-card { background: #2c2c2e; border-radius: 8px; padding: 12px; border-left: 4px solid var(--accent-color); display: flex; flex-direction: column; gap: 4px; position: relative; }
+        .event-card { background: #2c2c2e; border-radius: 8px; padding: 12px; border-left: 4px solid var(--accent-color); display: flex; flex-direction: column; gap: 4px; }
         .event-card-header { display: flex; justify-content: space-between; align-items: center; }
         .event-card-title { font-size: 15px; font-weight: bold; color: #fff; }
         .event-card-time { font-size: 12px; color: #64d2ff; }
@@ -96,7 +98,6 @@
                 <button style="background:none; border:none; color:var(--text-muted); font-size:20px;" id="closeModalBtn">✕</button>
             </div>
             
-            <!-- 상세 입력 폼 -->
             <div class="form-group">
                 <input type="text" id="eventTitleInput" placeholder="일정 제목 (필수)">
                 <div class="form-row">
@@ -107,12 +108,46 @@
                 <button class="btn-add" id="addEventBtn">일정 등록</button>
             </div>
 
-            <!-- 등록된 일정 리스트 -->
             <div class="modal-event-list" id="modalEventList"></div>
         </div>
     </div>
 
     <script>
+        // 한국 공휴일 데이터베이스 (고정 양력 + 음력/대체 공휴일 매핑)
+        const fixedHolidays = {
+            "01-01": "신정",
+            "03-01": "삼일절",
+            "05-05": "어린이날",
+            "06-06": "현충일",
+            "08-15": "광복절",
+            "10-03": "개천절",
+            "10-09": "한글날",
+            "12-25": "성탄절"
+        };
+
+        const variableHolidays = {
+            // 2025년
+            "2025-01-28": "설날 연휴", "2025-01-29": "설날", "2025-01-30": "설날 연휴",
+            "2025-05-05": "어린이날/부처님오신날", "2025-05-06": "대체공휴일",
+            "2025-10-05": "추석 연휴", "2025-10-06": "추석", "2025-10-07": "추석 연휴", "2025-10-08": "대체공휴일",
+            // 2026년
+            "2026-02-16": "설날 연휴", "2026-02-17": "설날", "2026-02-18": "설날 연휴",
+            "2026-05-24": "부처님오신날", "2026-05-25": "대체공휴일",
+            "2026-09-24": "추석 연휴", "2026-09-25": "추석", "2026-09-26": "추석 연휴",
+            // 2027년
+            "2027-02-06": "설날 연휴", "2027-02-07": "설날", "2027-02-08": "설날 연휴", "2027-02-09": "대체공휴일",
+            "2027-05-13": "부처님오신날",
+            "2027-09-14": "추석 연휴", "2027-09-15": "추석", "2027-09-16": "추석 연휴"
+        };
+
+        function getHolidayName(dateStr) {
+            // dateStr format: YYYY-MM-DD
+            if (variableHolidays[dateStr]) return variableHolidays[dateStr];
+            const mmdd = dateStr.substring(5);
+            if (fixedHolidays[mmdd]) return fixedHolidays[mmdd];
+            return null;
+        }
+
         function getLunarText(y, m, d) {
             try {
                 const solar = new Date(y, m - 1, d);
@@ -171,14 +206,20 @@
             const dayOfWeek = targetDate.getDay();
 
             const dateKey = `${actualY}-${String(actualM).padStart(2, '0')}-${String(actualD).padStart(2, '0')}`;
+            const holidayName = getHolidayName(dateKey);
 
             const cell = document.createElement("div");
-            cell.className = `day-cell ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${dayOfWeek === 0 ? 'sun' : ''} ${dayOfWeek === 6 ? 'sat' : ''}`;
+            cell.className = `day-cell ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${dayOfWeek === 0 ? 'sun' : ''} ${dayOfWeek === 6 ? 'sat' : ''} ${holidayName ? 'holiday' : ''}`;
+
+            const lunarStr = getLunarText(actualY, actualM, actualD);
 
             cell.innerHTML = `
                 <div class="day-header">
                     <span class="solar-num">${actualD}</span>
-                    <span class="lunar-num">${getLunarText(actualY, actualM, actualD)}</span>
+                    <div class="lunar-info">
+                        <span class="lunar-num">${lunarStr}</span>
+                        ${holidayName ? `<span class="holiday-name">${holidayName}</span>` : ''}
+                    </div>
                 </div>
                 <div class="event-list-preview" id="preview-${dateKey}"></div>
             `;
@@ -202,13 +243,15 @@
                 previewContainer.appendChild(more);
             }
 
-            cell.addEventListener("click", () => openEventModal(dateKey, actualY, actualM, actualD));
+            cell.addEventListener("click", () => openEventModal(dateKey, actualY, actualM, actualD, holidayName));
             return cell;
         }
 
-        function openEventModal(dateKey, y, m, d) {
+        function openEventModal(dateKey, y, m, d, holidayName) {
             selectedDateStr = dateKey;
-            document.getElementById("modalDateTitle").textContent = `${y}년 ${m}월 ${d}일 일정 상세`;
+            let titleText = `${y}년 ${m}월 ${d}일 일정 상세`;
+            if (holidayName) titleText += ` (${holidayName})`;
+            document.getElementById("modalDateTitle").textContent = titleText;
             clearInputs();
             renderModalEvents();
             document.getElementById("eventModal").classList.add("active");
@@ -231,7 +274,6 @@
                 return;
             }
 
-            // 시간순 정렬
             dayEvents.sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
 
             dayEvents.forEach((evt, idx) => {
@@ -284,7 +326,6 @@
             }
         };
 
-        // 데이터 백업 (TXT)
         document.getElementById("exportTxtBtn").addEventListener("click", () => {
             let txt = "=== 상세 일정 백업 ===\n\n";
             Object.keys(events).sort().forEach(k => {
@@ -300,7 +341,6 @@
             downloadFile(txt, "calendar_backup.txt", "text/plain");
         });
 
-        // 데이터 백업 (Excel / CSV)
         document.getElementById("exportCsvBtn").addEventListener("click", () => {
             let csv = "\uFEFF날짜,시간,일정명,장소,메모\n";
             Object.keys(events).sort().forEach(k => {
