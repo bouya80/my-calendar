@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>나만의 달력</title>
+    <title>나만의 달력 & 타임블록</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
@@ -18,53 +18,94 @@
             --saturday-color: #64d2ff;
             --lunar-color: #a1a1a6;
             --grid-border: #2c2c2e;
+
+            /* TimeBlocks 스타일 색상 테마 */
+            --c-blue: #0a84ff;
+            --c-red: #ff453a;
+            --c-green: #30d158;
+            --c-yellow: #ffd60a;
+            --c-purple: #bf5af2;
+            --c-orange: #ff9f0a;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); display: flex; flex-direction: column; min-height: 100vh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
-        header { padding: 16px 20px 12px 20px; display: flex; justify-content: space-between; align-items: center; background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); }
+        
+        header { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; background-color: var(--card-bg); border-bottom: 1px solid var(--border-color); }
         .month-year { font-size: 20px; font-weight: 700; color: #ffffff; }
         .nav-btns { display: flex; gap: 8px; }
-        .btn-icon { background: #2c2c2e; border: 1px solid var(--border-color); color: #ffffff; padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; padding: 10px 0; font-size: 13px; font-weight: 600; background: var(--card-bg); border-bottom: 1px solid var(--border-color); }
+        .btn-icon { background: #2c2c2e; border: 1px solid var(--border-color); color: #ffffff; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; padding: 8px 0; font-size: 12px; font-weight: 600; background: var(--card-bg); border-bottom: 1px solid var(--border-color); }
         .weekdays div:nth-child(1) { color: var(--sunday-color); }
         .weekdays div:nth-child(7) { color: var(--saturday-color); }
+
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); flex-grow: 1; background-color: var(--bg-color); }
-        .day-cell { min-height: 90px; border-right: 1px solid var(--grid-border); border-bottom: 1px solid var(--grid-border); padding: 6px; display: flex; flex-direction: column; cursor: pointer; background-color: var(--bg-color); }
+        .day-cell { min-height: 95px; border-right: 1px solid var(--grid-border); border-bottom: 1px solid var(--grid-border); padding: 4px; display: flex; flex-direction: column; cursor: pointer; background-color: var(--bg-color); position: relative; }
         .day-cell:nth-child(7n) { border-right: none; }
         .day-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-        .solar-num { font-size: 15px; font-weight: 600; color: #ffffff; }
+        .solar-num { font-size: 14px; font-weight: 600; color: #ffffff; }
         .day-cell.other-month .solar-num { opacity: 0.3; }
         .day-cell.sun .solar-num, .day-cell.holiday .solar-num { color: var(--sunday-color) !important; }
         .day-cell.sat .solar-num { color: var(--saturday-color); }
+        
         .lunar-info { display: flex; flex-direction: column; align-items: flex-end; }
         .lunar-num { font-size: 9px; color: var(--lunar-color); }
         .holiday-name { font-size: 9px; color: var(--sunday-color); font-weight: 600; margin-top: 1px; }
-        
-        .day-cell.today .solar-num { background-color: var(--accent-color); color: #ffffff !important; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
-        .event-badge { font-size: 11px; background-color: rgba(10, 132, 255, 0.25); color: #64d2ff; border-left: 3px solid var(--accent-color); padding: 2px 4px; margin-top: 2px; border-radius: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .day-cell.today .solar-num { background-color: var(--accent-color); color: #ffffff !important; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+
+        /* 타임블록 스타일 스티커/배지 */
+        .event-list-preview { display: flex; flex-direction: column; gap: 2px; }
+        .event-badge { font-size: 10px; padding: 2px 4px; border-radius: 3px; color: #fff; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .event-badge.blue { background-color: var(--c-blue); }
+        .event-badge.red { background-color: var(--c-red); }
+        .event-badge.green { background-color: var(--c-green); color: #121212; }
+        .event-badge.yellow { background-color: var(--c-yellow); color: #121212; }
+        .event-badge.purple { background-color: var(--c-purple); }
+        .event-badge.orange { background-color: var(--c-orange); }
+
+        .todo-preview-count { font-size: 9px; color: var(--accent-color); margin-top: auto; font-weight: bold; }
+
         .toolbar { padding: 12px 16px; background-color: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; gap: 8px; }
-        .btn-action { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: #2c2c2e; color: #ffffff; font-size: 13px; font-weight: 500; cursor: pointer; }
-        
+        .btn-action { padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); background: #2c2c2e; color: #ffffff; font-size: 12px; font-weight: 500; cursor: pointer; }
+
+        /* 모달 스타일 */
         .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: flex-end; z-index: 1000; }
         .modal-overlay.active { display: flex; }
         .modal-content { background-color: var(--card-bg); width: 100%; max-width: 500px; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; max-height: 85vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-        
+
+        /* 탭 서식 (일정 vs 할 일) */
+        .tab-menu { display: flex; background: #121212; padding: 3px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .tab-btn { flex: 1; padding: 8px; border: none; background: none; color: var(--text-muted); font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+        .tab-btn.active { background: #2c2c2e; color: #fff; }
+
         .form-group { display: flex; flex-direction: column; gap: 8px; background: #121212; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); }
         .form-row { display: flex; gap: 8px; }
-        input[type="text"], input[type="time"], textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: #2c2c2e; color: #fff; font-size: 14px; }
-        textarea { resize: none; height: 50px; }
-        .btn-add { background: var(--accent-color); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; }
+        input[type="text"], input[type="date"], input[type="time"], textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: #2c2c2e; color: #fff; font-size: 14px; }
+        textarea { resize: none; height: 45px; }
         
-        .modal-event-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-        .event-card { background: #2c2c2e; border-radius: 8px; padding: 12px; border-left: 4px solid var(--accent-color); display: flex; flex-direction: column; gap: 4px; }
+        /* 색상 팔레트 선택 */
+        .color-picker { display: flex; gap: 8px; align-items: center; padding: 4px 0; }
+        .color-opt { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+        .color-opt.selected { border-color: #ffffff; transform: scale(1.15); }
+
+        .btn-add { background: var(--accent-color); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; }
+
+        .modal-list-container { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+        .event-card { background: #2c2c2e; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 4px; border-left: 5px solid var(--accent-color); }
         .event-card-header { display: flex; justify-content: space-between; align-items: center; }
-        .event-card-title { font-size: 15px; font-weight: bold; color: #fff; }
-        .event-card-time { font-size: 12px; color: #64d2ff; }
-        .event-card-location { font-size: 12px; color: var(--text-muted); }
-        .event-card-memo { font-size: 13px; color: #d1d1d6; margin-top: 4px; white-space: pre-wrap; background: #1c1c1e; padding: 6px; border-radius: 4px; }
-        .btn-del-card { background: none; border: none; color: var(--sunday-color); font-weight: bold; font-size: 13px; cursor: pointer; }
+        .event-card-title { font-size: 14px; font-weight: bold; color: #fff; }
+        .event-card-sub { font-size: 12px; color: var(--text-muted); }
+        .event-card-memo { font-size: 12px; color: #d1d1d6; margin-top: 4px; background: #1c1c1e; padding: 6px; border-radius: 4px; white-space: pre-wrap; }
+        .btn-del-card { background: none; border: none; color: var(--sunday-color); font-weight: bold; font-size: 12px; cursor: pointer; }
+
+        /* 체크리스트 아이템 */
+        .todo-item { display: flex; align-items: center; gap: 10px; background: #2c2c2e; padding: 10px 12px; border-radius: 8px; }
+        .todo-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-color); }
+        .todo-item.done span { text-decoration: line-through; opacity: 0.5; }
+
         #fileInput { display: none; }
     </style>
 </head>
@@ -91,61 +132,80 @@
         <input type="file" id="fileInput" accept=".txt,.csv">
     </div>
 
+    <!-- 모달 -->
     <div class="modal-overlay" id="eventModal">
         <div class="modal-content">
             <div class="modal-header">
                 <div id="modalDateTitle" style="font-size: 16px; font-weight: bold;">일정 관리</div>
                 <button style="background:none; border:none; color:var(--text-muted); font-size:20px;" id="closeModalBtn">✕</button>
             </div>
-            
-            <div class="form-group">
+
+            <!-- 탭 (일정 vs 체크리스트) -->
+            <div class="tab-menu">
+                <button class="tab-btn active" id="tabScheduleBtn">일정 등록</button>
+                <button class="tab-btn" id="tabTodoBtn">체크리스트(To-Do)</button>
+            </div>
+
+            <!-- 일정 입력 폼 -->
+            <div class="form-group" id="scheduleForm">
                 <input type="text" id="eventTitleInput" placeholder="일정 제목 (필수)">
+                <div class="form-row">
+                    <input type="date" id="eventStartDate">
+                    <input type="date" id="eventEndDate">
+                </div>
                 <div class="form-row">
                     <input type="time" id="eventTimeInput" placeholder="시간">
                     <input type="text" id="eventLocInput" placeholder="장소">
                 </div>
                 <textarea id="eventMemoInput" placeholder="상세 메모..."></textarea>
-                <button class="btn-add" id="addEventBtn">일정 등록</button>
+                
+                <div class="color-picker">
+                    <span style="font-size: 12px; color: var(--text-muted);">색상: </span>
+                    <div class="color-opt selected" style="background:var(--c-blue);" data-color="blue"></div>
+                    <div class="color-opt" style="background:var(--c-red);" data-color="red"></div>
+                    <div class="color-opt" style="background:var(--c-green);" data-color="green"></div>
+                    <div class="color-opt" style="background:var(--c-yellow);" data-color="yellow"></div>
+                    <div class="color-opt" style="background:var(--c-purple);" data-color="purple"></div>
+                    <div class="color-opt" style="background:var(--c-orange);" data-color="orange"></div>
+                </div>
+
+                <button class="btn-add" id="addEventBtn">일정 추가</button>
             </div>
 
-            <div class="modal-event-list" id="modalEventList"></div>
+            <!-- 체크리스트 입력 폼 -->
+            <div class="form-group" id="todoForm" style="display: none;">
+                <div class="form-row">
+                    <input type="text" id="todoInput" placeholder="할 일 항목 입력...">
+                    <button class="btn-add" id="addTodoBtn" style="padding:0 16px;">추가</button>
+                </div>
+            </div>
+
+            <!-- 목록 표시 영역 -->
+            <div class="modal-list-container" id="modalListContainer"></div>
         </div>
     </div>
 
     <script>
-        // 한국 공휴일 데이터베이스 (고정 양력 + 음력/대체 공휴일 매핑)
         const fixedHolidays = {
-            "01-01": "신정",
-            "03-01": "삼일절",
-            "05-05": "어린이날",
-            "06-06": "현충일",
-            "08-15": "광복절",
-            "10-03": "개천절",
-            "10-09": "한글날",
-            "12-25": "성탄절"
+            "01-01": "신정", "03-01": "삼일절", "05-05": "어린이날", "06-06": "현충일",
+            "08-15": "광복절", "10-03": "개천절", "10-09": "한글날", "12-25": "성탄절"
         };
 
         const variableHolidays = {
-            // 2025년
             "2025-01-28": "설날 연휴", "2025-01-29": "설날", "2025-01-30": "설날 연휴",
             "2025-05-05": "어린이날/부처님오신날", "2025-05-06": "대체공휴일",
             "2025-10-05": "추석 연휴", "2025-10-06": "추석", "2025-10-07": "추석 연휴", "2025-10-08": "대체공휴일",
-            // 2026년
             "2026-02-16": "설날 연휴", "2026-02-17": "설날", "2026-02-18": "설날 연휴",
             "2026-05-24": "부처님오신날", "2026-05-25": "대체공휴일",
-            "2026-09-24": "추석 연휴", "2026-09-25": "추석", "2026-09-26": "추석 연휴",
-            // 2027년
+            "2026-09-24": "추석 연휴", "2026-09-25": "추석", "2026-09-26": "추석 연휴", "2026-10-05": "대체공휴일",
             "2027-02-06": "설날 연휴", "2027-02-07": "설날", "2027-02-08": "설날 연휴", "2027-02-09": "대체공휴일",
-            "2027-05-13": "부처님오신날",
-            "2027-09-14": "추석 연휴", "2027-09-15": "추석", "2027-09-16": "추석 연휴"
+            "2027-05-13": "부처님오신날", "2027-09-14": "추석 연휴", "2027-09-15": "추석", "2027-09-16": "추석 연휴"
         };
 
         function getHolidayName(dateStr) {
-            // dateStr format: YYYY-MM-DD
             if (variableHolidays[dateStr]) return variableHolidays[dateStr];
             const mmdd = dateStr.substring(5);
-            if (fixedHolidays[mmdd]) return fixedHolidays[mmdd];
-            return null;
+            return fixedHolidays[mmdd] || null;
         }
 
         function getLunarText(y, m, d) {
@@ -159,14 +219,16 @@
                 if (approxLunarDay <= 0) approxLunarDay += 30;
                 let lm = (approxLunarMonth % 12); if (lm === 0) lm = 12;
                 return `${lm}.${approxLunarDay}`;
-            } catch (e) {
-                return "";
-            }
+            } catch (e) { return ""; }
         }
 
         let currentDate = new Date();
         let selectedDateStr = "";
-        let events = JSON.parse(localStorage.getItem("my_calendar_events") || "{}");
+        let selectedColor = "blue";
+        let activeTab = "schedule";
+
+        let events = JSON.parse(localStorage.getItem("my_tb_events") || "[]");
+        let todos = JSON.parse(localStorage.getItem("my_tb_todos") || "{}");
 
         const monthYearText = document.getElementById("monthYearText");
         const calendarGrid = document.getElementById("calendarGrid");
@@ -181,7 +243,6 @@
             const firstDay = new Date(year, month, 1).getDay();
             const lastDate = new Date(year, month + 1, 0).getDate();
             const prevLastDate = new Date(year, month, 0).getDate();
-
             const today = new Date();
             const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
@@ -211,36 +272,42 @@
             const cell = document.createElement("div");
             cell.className = `day-cell ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''} ${dayOfWeek === 0 ? 'sun' : ''} ${dayOfWeek === 6 ? 'sat' : ''} ${holidayName ? 'holiday' : ''}`;
 
-            const lunarStr = getLunarText(actualY, actualM, actualD);
-
             cell.innerHTML = `
                 <div class="day-header">
                     <span class="solar-num">${actualD}</span>
                     <div class="lunar-info">
-                        <span class="lunar-num">${lunarStr}</span>
+                        <span class="lunar-num">${getLunarText(actualY, actualM, actualD)}</span>
                         ${holidayName ? `<span class="holiday-name">${holidayName}</span>` : ''}
                     </div>
                 </div>
                 <div class="event-list-preview" id="preview-${dateKey}"></div>
+                <div class="todo-preview-count" id="todo-count-${dateKey}"></div>
             `;
 
-            const dayEvents = events[dateKey] || [];
             const previewContainer = cell.querySelector(`#preview-${dateKey}`);
-            
-            dayEvents.slice(0, 2).forEach(evt => {
-                const b = document.createElement("div");
-                b.className = "event-badge";
-                const timePrefix = evt.time ? `[${evt.time}] ` : "";
-                b.textContent = `${timePrefix}${evt.title}`;
-                previewContainer.appendChild(b);
+            const matchingEvents = events.filter(e => dateKey >= e.startDate && dateKey <= e.endDate);
+
+            matchingEvents.slice(0, 2).forEach(e => {
+                const badge = document.createElement("div");
+                badge.className = `event-badge ${e.color || 'blue'}`;
+                const prefix = (e.startDate !== e.endDate) ? "🚩 " : (e.time ? `[${e.time}] ` : "");
+                badge.textContent = `${prefix}${e.title}`;
+                previewContainer.appendChild(badge);
             });
 
-            if (dayEvents.length > 2) {
+            if (matchingEvents.length > 2) {
                 const more = document.createElement("div");
-                more.className = "event-badge";
+                more.className = "event-badge blue";
                 more.style.opacity = "0.6";
-                more.textContent = `+${dayEvents.length - 2}개 더보기`;
+                more.textContent = `+${matchingEvents.length - 2}개`;
                 previewContainer.appendChild(more);
+            }
+
+            const dayTodos = todos[dateKey] || [];
+            if (dayTodos.length > 0) {
+                const doneCount = dayTodos.filter(t => t.done).length;
+                const todoCountElem = cell.querySelector(`#todo-count-${dateKey}`);
+                todoCountElem.textContent = `☑ ${doneCount}/${dayTodos.length}`;
             }
 
             cell.addEventListener("click", () => openEventModal(dateKey, actualY, actualM, actualD, holidayName));
@@ -249,11 +316,15 @@
 
         function openEventModal(dateKey, y, m, d, holidayName) {
             selectedDateStr = dateKey;
-            let titleText = `${y}년 ${m}월 ${d}일 일정 상세`;
+            let titleText = `${y}년 ${m}월 ${d}일`;
             if (holidayName) titleText += ` (${holidayName})`;
             document.getElementById("modalDateTitle").textContent = titleText;
+
+            document.getElementById("eventStartDate").value = dateKey;
+            document.getElementById("eventEndDate").value = dateKey;
+
             clearInputs();
-            renderModalEvents();
+            renderModalContent();
             document.getElementById("eventModal").classList.add("active");
         }
 
@@ -262,97 +333,172 @@
             document.getElementById("eventTimeInput").value = "";
             document.getElementById("eventLocInput").value = "";
             document.getElementById("eventMemoInput").value = "";
+            document.getElementById("todoInput").value = "";
         }
 
-        function renderModalEvents() {
-            const list = document.getElementById("modalEventList");
-            list.innerHTML = "";
-            const dayEvents = events[selectedDateStr] || [];
+        function renderModalContent() {
+            const container = document.getElementById("modalListContainer");
+            container.innerHTML = "";
 
-            if (dayEvents.length === 0) {
-                list.innerHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:12px;">등록된 일정이 없습니다.</div>`;
-                return;
+            if (activeTab === "schedule") {
+                document.getElementById("scheduleForm").style.display = "flex";
+                document.getElementById("todoForm").style.display = "none";
+
+                const matchingEvents = events.filter(e => selectedDateStr >= e.startDate && selectedDateStr <= e.endDate);
+                if (matchingEvents.length === 0) {
+                    container.innerHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:12px;">등록된 일정이 없습니다.</div>`;
+                    return;
+                }
+
+                matchingEvents.forEach((evt) => {
+                    const card = document.createElement("div");
+                    card.className = "event-card";
+                    card.style.borderLeftColor = `var(--c-${evt.color || 'blue'})`;
+
+                    let dateSpan = evt.startDate === evt.endDate ? evt.startDate : `${evt.startDate} ~ ${evt.endDate}`;
+                    let html = `
+                        <div class="event-card-header">
+                            <span class="event-card-title">${evt.title}</span>
+                            <button class="btn-del-card" onclick="deleteSchedule('${evt.id}')">삭제</button>
+                        </div>
+                        <div class="event-card-sub">📅 ${dateSpan} ${evt.time ? '⏰ ' + evt.time : ''}</div>
+                    `;
+                    if (evt.location) html += `<div class="event-card-sub">📍 ${evt.location}</div>`;
+                    if (evt.memo) html += `<div class="event-card-memo">${evt.memo}</div>`;
+
+                    card.innerHTML = html;
+                    container.appendChild(card);
+                });
+
+            } else {
+                document.getElementById("scheduleForm").style.display = "none";
+                document.getElementById("todoForm").style.display = "flex";
+
+                const dayTodos = todos[selectedDateStr] || [];
+                if (dayTodos.length === 0) {
+                    container.innerHTML = `<div style="color:var(--text-muted); font-size:13px; text-align:center; padding:12px;">등록된 체크리스트가 없습니다.</div>`;
+                    return;
+                }
+
+                dayTodos.forEach((t, idx) => {
+                    const item = document.createElement("div");
+                    item.className = `todo-item ${t.done ? 'done' : ''}`;
+                    item.innerHTML = `
+                        <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodo(${idx})">
+                        <span style="flex:1; font-size:14px; color:#fff;">${t.text}</span>
+                        <button class="btn-del-card" onclick="deleteTodo(${idx})">삭제</button>
+                    `;
+                    container.appendChild(item);
+                });
             }
-
-            dayEvents.sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99"));
-
-            dayEvents.forEach((evt, idx) => {
-                const card = document.createElement("div");
-                card.className = "event-card";
-                
-                let html = `
-                    <div class="event-card-header">
-                        <span class="event-card-title">${evt.title}</span>
-                        <button class="btn-del-card" onclick="deleteEvent(${idx})">삭제</button>
-                    </div>
-                `;
-                if (evt.time) html += `<div class="event-card-time">⏰ ${evt.time}</div>`;
-                if (evt.location) html += `<div class="event-card-location">📍 ${evt.location}</div>`;
-                if (evt.memo) html += `<div class="event-card-memo">${evt.memo}</div>`;
-
-                card.innerHTML = html;
-                list.appendChild(card);
-            });
         }
 
-        function addEvent() {
+        document.getElementById("addEventBtn").addEventListener("click", () => {
             const title = document.getElementById("eventTitleInput").value.trim();
-            if (!title) {
-                alert("일정 제목을 입력해 주세요.");
-                return;
-            }
+            if (!title) { alert("일정 제목을 입력해 주세요."); return; }
 
+            const startDate = document.getElementById("eventStartDate").value;
+            const endDate = document.getElementById("eventEndDate").value;
             const time = document.getElementById("eventTimeInput").value;
             const location = document.getElementById("eventLocInput").value.trim();
             const memo = document.getElementById("eventMemoInput").value.trim();
 
-            if (!events[selectedDateStr]) events[selectedDateStr] = [];
-            
-            events[selectedDateStr].push({ title, time, location, memo });
-            localStorage.setItem("my_calendar_events", JSON.stringify(events));
+            const newEvt = {
+                id: Date.now().toString(),
+                title, startDate, endDate, time, location, memo, color: selectedColor
+            };
+
+            events.push(newEvt);
+            localStorage.setItem("my_tb_events", JSON.stringify(events));
 
             clearInputs();
-            renderModalEvents();
+            renderModalContent();
             renderCalendar();
-        }
+        });
 
-        window.deleteEvent = function(idx) {
-            if (events[selectedDateStr]) {
-                events[selectedDateStr].splice(idx, 1);
-                if (events[selectedDateStr].length === 0) delete events[selectedDateStr];
-                localStorage.setItem("my_calendar_events", JSON.stringify(events));
-                renderModalEvents();
+        window.deleteSchedule = function(id) {
+            events = events.filter(e => e.id !== id);
+            localStorage.setItem("my_tb_events", JSON.stringify(events));
+            renderModalContent();
+            renderCalendar();
+        };
+
+        document.getElementById("addTodoBtn").addEventListener("click", () => {
+            const text = document.getElementById("todoInput").value.trim();
+            if (!text) return;
+
+            if (!todos[selectedDateStr]) todos[selectedDateStr] = [];
+            todos[selectedDateStr].push({ text, done: false });
+            localStorage.setItem("my_tb_todos", JSON.stringify(todos));
+
+            document.getElementById("todoInput").value = "";
+            renderModalContent();
+            renderCalendar();
+        });
+
+        window.toggleTodo = function(idx) {
+            if (todos[selectedDateStr]) {
+                todos[selectedDateStr][idx].done = !todos[selectedDateStr][idx].done;
+                localStorage.setItem("my_tb_todos", JSON.stringify(todos));
+                renderModalContent();
                 renderCalendar();
             }
         };
 
-        document.getElementById("exportTxtBtn").addEventListener("click", () => {
-            let txt = "=== 상세 일정 백업 ===\n\n";
-            Object.keys(events).sort().forEach(k => {
-                txt += `[${k}]\n`;
-                events[k].forEach(e => {
-                    txt += `- 제목: ${e.title}\n`;
-                    if (e.time) txt += `  시간: ${e.time}\n`;
-                    if (e.location) txt += `  장소: ${e.location}\n`;
-                    if (e.memo) txt += `  메모: ${e.memo}\n`;
-                });
-                txt += "\n";
+        window.deleteTodo = function(idx) {
+            if (todos[selectedDateStr]) {
+                todos[selectedDateStr].splice(idx, 1);
+                if (todos[selectedDateStr].length === 0) delete todos[selectedDateStr];
+                localStorage.setItem("my_tb_todos", JSON.stringify(todos));
+                renderModalContent();
+                renderCalendar();
+            }
+        };
+
+        document.getElementById("tabScheduleBtn").addEventListener("click", function() {
+            activeTab = "schedule";
+            this.classList.add("active");
+            document.getElementById("tabTodoBtn").classList.remove("active");
+            renderModalContent();
+        });
+
+        document.getElementById("tabTodoBtn").addEventListener("click", function() {
+            activeTab = "todo";
+            this.classList.add("active");
+            document.getElementById("tabScheduleBtn").classList.remove("active");
+            renderModalContent();
+        });
+
+        document.querySelectorAll(".color-opt").forEach(opt => {
+            opt.addEventListener("click", function() {
+                document.querySelectorAll(".color-opt").forEach(o => o.classList.remove("selected"));
+                this.classList.add("selected");
+                selectedColor = this.dataset.color;
             });
-            downloadFile(txt, "calendar_backup.txt", "text/plain");
+        });
+
+        document.getElementById("exportTxtBtn").addEventListener("click", () => {
+            let txt = "=== 타임블록 일정 & To-Do 백업 ===\n\n[일정 목록]\n";
+            events.forEach(e => {
+                txt += `- [${e.startDate} ~ ${e.endDate}] ${e.title} (${e.color})\n`;
+                if (e.time) txt += `  시간: ${e.time}\n`;
+                if (e.location) txt += `  장소: ${e.location}\n`;
+                if (e.memo) txt += `  메모: ${e.memo}\n`;
+            });
+            txt += "\n[체크리스트]\n";
+            Object.keys(todos).forEach(k => {
+                txt += `[${k}]\n`;
+                todos[k].forEach(t => txt += `  ${t.done ? '[v]' : '[ ]'} ${t.text}\n`);
+            });
+            downloadFile(txt, "calendar_timeblocks_backup.txt", "text/plain");
         });
 
         document.getElementById("exportCsvBtn").addEventListener("click", () => {
-            let csv = "\uFEFF날짜,시간,일정명,장소,메모\n";
-            Object.keys(events).sort().forEach(k => {
-                events[k].forEach(e => {
-                    const title = (e.title || "").replace(/"/g, '""');
-                    const time = e.time || "";
-                    const loc = (e.location || "").replace(/"/g, '""');
-                    const memo = (e.memo || "").replace(/"/g, '""').replace(/\n/g, ' ');
-                    csv += `"${k}","${time}","${title}","${loc}","${memo}"\n`;
-                });
+            let csv = "\uFEFF시작일,종료일,시간,일정명,색상,장소,메모\n";
+            events.forEach(e => {
+                csv += `"${e.startDate}","${e.endDate}","${e.time || ''}","${(e.title||'').replace(/"/g,'""')}","${e.color}","${(e.location||'').replace(/"/g,'""')}","${(e.memo||'').replace(/"/g,'""').replace(/\n/g,' ')}"\n`;
             });
-            downloadFile(csv, "calendar_events.csv", "text/csv");
+            downloadFile(csv, "calendar_timeblocks_events.csv", "text/csv");
         });
 
         function downloadFile(content, fileName, mimeType) {
@@ -380,25 +526,24 @@
                         text.split(/\r\n|\n/).forEach((line, idx) => {
                             if (idx === 0 || !line.trim()) return;
                             const parts = line.split(',');
-                            if (parts.length >= 3) {
-                                const d = parts[0].replace(/"/g, '').trim();
-                                const t = parts[1].replace(/"/g, '').trim();
-                                const title = parts[2].replace(/"/g, '').trim();
-                                const loc = parts[3] ? parts[3].replace(/"/g, '').trim() : "";
-                                const memo = parts[4] ? parts[4].replace(/"/g, '').trim() : "";
-                                if (d && title) {
-                                    if (!events[d]) events[d] = [];
-                                    events[d].push({ title, time: t, location: loc, memo });
+                            if (parts.length >= 4) {
+                                const sD = parts[0].replace(/"/g, '').trim();
+                                const eD = parts[1].replace(/"/g, '').trim();
+                                const t = parts[2].replace(/"/g, '').trim();
+                                const title = parts[3].replace(/"/g, '').trim();
+                                const color = parts[4] ? parts[4].replace(/"/g, '').trim() : "blue";
+                                const loc = parts[5] ? parts[5].replace(/"/g, '').trim() : "";
+                                const memo = parts[6] ? parts[6].replace(/"/g, '').trim() : "";
+                                if (sD && title) {
+                                    events.push({ id: Date.now().toString() + idx, title, startDate: sD, endDate: eD || sD, time: t, location: loc, memo, color });
                                 }
                             }
                         });
                     }
-                    localStorage.setItem("my_calendar_events", JSON.stringify(events));
+                    localStorage.setItem("my_tb_events", JSON.stringify(events));
                     renderCalendar();
                     alert("복원이 완료되었습니다.");
-                } catch (err) {
-                    alert("파일 복원 중 오류가 발생했습니다.");
-                }
+                } catch (err) { alert("파일 복원 오류"); }
             };
             reader.readAsText(file);
         });
@@ -407,10 +552,8 @@
         document.getElementById("nextBtn").addEventListener("click", () => { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); });
         document.getElementById("todayBtn").addEventListener("click", () => { currentDate = new Date(); renderCalendar(); });
         document.getElementById("closeModalBtn").addEventListener("click", () => document.getElementById("eventModal").classList.remove("active"));
-        document.getElementById("addEventBtn").addEventListener("click", addEvent);
 
         renderCalendar();
     </script>
 </body>
 </html>
-
